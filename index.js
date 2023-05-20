@@ -29,10 +29,11 @@ async function run() {
         const toysCollection = client.db("PlaytopiaDB").collection("toys");
 
         app.get('/toys', async (req, res) => {
-            const {page, limit, searchedToy} = req.query;
+            const {page, limit, searchedToy, sort, email} = req.query;
             const currPage = parseInt(page) || 0;
             const pageLimit = parseInt(limit) || 20;
             const skip = currPage * pageLimit;
+            let result;
 
             if(searchedToy){
                 query = { toyName: { $regex: searchedToy, $options: 'i' } };
@@ -41,14 +42,29 @@ async function run() {
                 query = {};
             }
 
+            if(email){
+                query = {sellerEmail: email};
+            }
+
             console.log(currPage, pageLimit, query);
 
-            const result = await toysCollection.find(query).limit(pageLimit).skip(skip).toArray();
+            console.log(sort);
+            if(sort){
+                const sorting = parseInt(sort);
+                result = await toysCollection.find(query).sort({price:sorting}).limit(pageLimit).skip(skip).toArray();
+            }
+            else{
+                result = await toysCollection.find(query).limit(pageLimit).skip(skip).toArray();
+            }
             res.send(result);
         })
 
+        // .sort(sorting)..collation({locale: "en_US", numericOrdering: true}).toArray()
+
         app.get('/toys/:id', async (req, res) => {
             const id = req.params.id;
+
+            console.log(id);
 
             const query = { _id: new ObjectId(id) }
 
