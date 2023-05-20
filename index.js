@@ -28,7 +28,12 @@ async function run() {
         const toysCollection = client.db("PlaytopiaDB").collection("toys");
 
         app.get('/toys', async (req, res) => {
-            const result = await toysCollection.find().toArray();
+
+            const page = parseInt(req.query.page) || 0;
+            const limit = parseInt(req.query.limit) || 20;
+            const skip = page * limit;
+
+            const result = await toysCollection.find().limit(limit).skip(skip).toArray();
             res.send(result);
         })
 
