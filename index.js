@@ -29,31 +29,31 @@ async function run() {
         const toysCollection = client.db("PlaytopiaDB").collection("toys");
 
         app.get('/toys', async (req, res) => {
-            const {page, limit, searchedToy, sort, email} = req.query;
+            const { page, limit, searchedToy, sort, email } = req.query;
             const currPage = parseInt(page) || 0;
             const pageLimit = parseInt(limit) || 20;
             const skip = currPage * pageLimit;
             let result;
 
-            if(searchedToy){
+            if (searchedToy) {
                 query = { toyName: { $regex: searchedToy, $options: 'i' } };
             }
-            else{
+            else {
                 query = {};
             }
 
-            if(email){
-                query = {sellerEmail: email};
+            if (email) {
+                query = { sellerEmail: email };
             }
 
             console.log(currPage, pageLimit, query);
 
             console.log(sort);
-            if(sort){
+            if (sort) {
                 const sorting = parseInt(sort);
-                result = await toysCollection.find(query).sort({price:sorting}).limit(pageLimit).skip(skip).toArray();
+                result = await toysCollection.find(query).sort({ price: sorting }).limit(pageLimit).skip(skip).toArray();
             }
-            else{
+            else {
                 result = await toysCollection.find(query).limit(pageLimit).skip(skip).toArray();
             }
             res.send(result);
@@ -70,6 +70,35 @@ async function run() {
 
             const result = await toysCollection.findOne(query);
 
+            res.send(result);
+        })
+
+        app.put('/toys/:id', async (req, res) => {
+            const id = req.params.id;
+            const update = req.body;
+
+            const filter = { _id: new ObjectId(id) };
+
+            const updateDoc = {
+                $set: {
+                    price: update.updatedPrice,
+                    quantity: update.updatedQuantity,
+                    description: update.updatedDescription
+                }
+            };
+
+            console.log(id, update)
+
+            const result = await toysCollection.updateOne(filter, updateDoc);
+
+            res.send(result);
+            // const filter = {new ObjectId(id)}
+        })
+
+        app.delete('/toys/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await toysCollection.deleteOne(query);
             res.send(result);
         })
 
