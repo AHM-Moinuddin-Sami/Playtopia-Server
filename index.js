@@ -26,7 +26,11 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         client.connect();
 
-        const toysCollection = client.db("PlaytopiaDB").collection("toys");
+        const database = client.db("PlaytopiaDB");
+
+        const toysCollection = database.collection("toys");
+
+        const galleryCollection = database.collection("galleryPhotos");
 
         app.get('/toys', async (req, res) => {
             const { page, limit, searchedToy, sort, email } = req.query;
@@ -51,11 +55,17 @@ async function run() {
             console.log(sort);
             if (sort) {
                 const sorting = parseInt(sort);
-                result = await toysCollection.find(query).sort({ price: sorting }).limit(pageLimit).skip(skip).toArray();
+                result = await toysCollection.find(query).sort({ price : sorting }).collation({locale: "en_US", numericOrdering: true}).limit(pageLimit).skip(skip).toArray();
             }
             else {
                 result = await toysCollection.find(query).limit(pageLimit).skip(skip).toArray();
             }
+            res.send(result);
+        })
+
+        app.get('/galleryPhotos', async(req, res)=>{
+            console.log("Inside gallery");
+            const result = await galleryCollection.find().toArray();
             res.send(result);
         })
 
