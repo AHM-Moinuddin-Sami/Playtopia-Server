@@ -32,6 +32,8 @@ async function run() {
 
         const galleryCollection = database.collection("galleryPhotos");
 
+        const reviewCollection = database.collection("reviews");
+
         app.get('/toys', async (req, res) => {
             const { page, limit, searchedToy, sort, email } = req.query;
             const currPage = parseInt(page) || 0;
@@ -50,9 +52,6 @@ async function run() {
                 query = { sellerEmail: email };
             }
 
-            console.log(currPage, pageLimit, query);
-
-            console.log(sort);
             if (sort) {
                 const sorting = parseInt(sort);
                 result = await toysCollection.find(query).sort({ price : sorting }).collation({locale: "en_US", numericOrdering: true}).limit(pageLimit).skip(skip).toArray();
@@ -64,17 +63,17 @@ async function run() {
         })
 
         app.get('/galleryPhotos', async(req, res)=>{
-            console.log("Inside gallery");
             const result = await galleryCollection.find().toArray();
             res.send(result);
         })
 
-        // .sort(sorting)..collation({locale: "en_US", numericOrdering: true}).toArray()
+        app.get('/reviews', async(req, res)=>{
+            const result = await reviewCollection.find().toArray();
+            res.send(result);
+        })
 
         app.get('/toys/:id', async (req, res) => {
             const id = req.params.id;
-
-            console.log(id);
 
             const query = { _id: new ObjectId(id) }
 
@@ -96,8 +95,6 @@ async function run() {
                     description: update.updatedDescription
                 }
             };
-
-            console.log(id, update)
 
             const result = await toysCollection.updateOne(filter, updateDoc);
 
